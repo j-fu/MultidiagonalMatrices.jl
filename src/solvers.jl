@@ -35,7 +35,7 @@ function tdma!(u,A::Tridiagonal{T},f) where T<:Number
 end
 
 
-function tdma!(u,A::MultiDiagonalMatrix{T},f) where T
+function tdma!(u,A::MultidiagonalMatrix{T},f) where T
     istridiagonal(A)|| error("tdma works only for tridiagonal matrices")
     dl=A.diags[1].second
     d=A.diags[2].second
@@ -43,7 +43,7 @@ function tdma!(u,A::MultiDiagonalMatrix{T},f) where T
     tdma!(u,dl,d,du,f)
 end
 
-function tdma(A::Union{Tridiagonal{T},MultiDiagonalMatrix{T}},f) where T<:Number
+function tdma(A::Union{Tridiagonal{T},MultidiagonalMatrix{T}},f) where T<:Number
     istridiagonal(A)|| error("tdma works only for tridiagonal matrices")
     Tu=promote_type(T,eltype(f))
     u=similar(f,Tu)
@@ -52,7 +52,7 @@ end
 
 
 
-function tdma(md::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatrix,Tu<:SVector}
+function tdma(md::MultidiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatrix,Tu<:SVector}
     b=blocksize(md)
     if b!=size(u[1],1)
         error("incompatible blocksizes")
@@ -63,7 +63,7 @@ function tdma(md::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatri
 end
 
 
-function tdma(md::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatrix,Tu<:Number}
+function tdma(md::MultidiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatrix,Tu<:Number}
     Tv=promote_type(eltype(T),Tu)
     v=Vector{Tv}(undef,length(u))
     b=blocksize(md)
@@ -74,7 +74,7 @@ function tdma(md::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatri
 end
 
 
-function tdma(md::MultiDiagonalMatrix{T},u::AbstractMatrix{Tu}) where {T<:SMatrix,Tu<:Number}
+function tdma(md::MultidiagonalMatrix{T},u::AbstractMatrix{Tu}) where {T<:SMatrix,Tu<:Number}
     b=blocksize(md)
     if b!=size(u,1)
         error("incompatible blocksizes")

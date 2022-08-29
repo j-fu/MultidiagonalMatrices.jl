@@ -1,11 +1,11 @@
-module MultiDiagonalMatrices
+module MultidiagonalMatrices
 using LinearAlgebra
 using SparseArrays
 using StaticArrays
 
 
 include("multidiagonalmatrix.jl")
-export MultiDiagonalMatrix
+export MultidiagonalMatrix
 export istridiagonal,fdsizes,mdrand,mdzeros
 
 include("base.jl")
@@ -16,4 +16,4 @@ include("solvers.jl")
 export tdma,tdma!
 
 
-end # module MultiDiagonalMatrices
+end # module MultidiagonalMatrices

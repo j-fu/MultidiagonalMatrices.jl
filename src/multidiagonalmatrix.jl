@@ -1,4 +1,4 @@
-struct MultiDiagonalMatrix{T,S} <: AbstractMatrix{T}
+struct MultidiagonalMatrix{T,S} <: AbstractMatrix{T}
     diags::Vector{Pair{Int64,Vector{T}}}
     shadow::Vector{Pair{Int64,S}}
 end
@@ -13,25 +13,25 @@ function _shadow(a::Vector{T}) where T<:SMatrix
 end
 
 
-function MultiDiagonalMatrix(diags::Pair{Int64,Vector{T}}...) where T
+function MultidiagonalMatrix(diags::Pair{Int64,Vector{T}}...) where T
     d=diags[1]
     n=abs(d.first)+length(d.second)
     if !all(d->abs(d.first)+length(d.second)==n,diags)
-	error("MultiDiagonalMatrix(): diagonal length mismatch")
+	error("MultidiagonalMatrix(): diagonal length mismatch")
     end
     diags=sort([diags...],lt=(a,b)->isless(a.first,b.first))
     shadow=[d.first => _shadow(d.second) for d ∈ diags]
-    MultiDiagonalMatrix(diags,shadow)
+    MultidiagonalMatrix(diags,shadow)
 end
 
 
-function MultiDiagonalMatrix(A::AbstractMatrix{T},diags=[-1,0,1]; blocksize=1) where T<:Number
+function MultidiagonalMatrix(A::AbstractMatrix{T},diags=[-1,0,1]; blocksize=1) where T<:Number
     MA=mdzeros(T,size(A)...,diags;blocksize)
     _setentries!(MA,A)
 end
 
-
-function _setentries!(MA::MultiDiagonalMatrix{T},A::AbstractMatrix) where T<:Number
+                                 
+function _setentries!(MA::MultidiagonalMatrix{T},A::AbstractMatrix) where T<:Number
     for d in MA.diags
 	o=d.first
 	if o>=0
@@ -47,7 +47,7 @@ function _setentries!(MA::MultiDiagonalMatrix{T},A::AbstractMatrix) where T<:Num
     MA
 end
 
-function _setentries!(MA::MultiDiagonalMatrix{T},A::AbstractMatrix) where T<:SMatrix
+function _setentries!(MA::MultidiagonalMatrix{T},A::AbstractMatrix) where T<:SMatrix
     b=blocksize(MA)
     for d in MA.shadow
 	o=d.first
@@ -70,12 +70,12 @@ end
 
 
 
-blocksize(md::MultiDiagonalMatrix{T,S}) where {T<: SMatrix,S} =size(md.diags[1].second[1],1)
-blocksize(md::MultiDiagonalMatrix{T,S}) where {T<: Number,S} = 1
+blocksize(md::MultidiagonalMatrix{T,S}) where {T<: SMatrix,S} =size(md.diags[1].second[1],1)
+blocksize(md::MultidiagonalMatrix{T,S}) where {T<: Number,S} = 1
 
-istridiagonal(m::MultiDiagonalMatrix)= first.(m.diags)==[-1,0,1]
+istridiagonal(m::MultidiagonalMatrix)= first.(m.diags)==[-1,0,1]
 
-function fdsizes(m::MultiDiagonalMatrix)
+function fdsizes(m::MultidiagonalMatrix)
     diags=first.(md.diags)
     ndiags=length(diags)
     if ndiags==3 && diags==[-1.0,1]
@@ -130,7 +130,7 @@ function mdrand(n,m,diags=[-1,0,1]; blocksize=1)
         end
 
     end
-    MultiDiagonalMatrix(pairs...)
+    MultidiagonalMatrix(pairs...)
 end
 
 
@@ -149,7 +149,7 @@ function mdzeros(n,m,diags=[-1,0,1], ::Type{T}=Float64; blocksize=1) where T
             push!(pairs,d=>[@SMatrix zeros(T,blocksize,blocksize) for i=1:nb-abs(d)])
         end
     end
-    MultiDiagonalMatrix(pairs...)
+    MultidiagonalMatrix(pairs...)
 end
 
 mdzeros(::Type{T},n,m,diags=[-1,0,1];blocksize=1)  where T =mdzeros(n,m,diags,T;blocksize)

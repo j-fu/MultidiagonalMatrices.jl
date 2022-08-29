@@ -1,4 +1,7 @@
-function SparseArrays.sparse(md::MultiDiagonalMatrix{T}) where T<: Number
+SparseArrays.nnz(A::MultidiagonalMatrix)=sum(d->length(d.second),A.diags)*blocksize(A)^2
+
+
+function SparseArrays.sparse(md::MultidiagonalMatrix{T}) where T<: Number
     I=Int64[]
     J=Int64[]
     V=T[]
@@ -22,7 +25,7 @@ function SparseArrays.sparse(md::MultiDiagonalMatrix{T}) where T<: Number
 end 
 
 
-function SparseArrays.sparse(md::MultiDiagonalMatrix{T}) where T<: SMatrix
+function SparseArrays.sparse(md::MultidiagonalMatrix{T}) where T<: SMatrix
     b=blocksize(md)
     I=Int64[]
     J=Int64[]

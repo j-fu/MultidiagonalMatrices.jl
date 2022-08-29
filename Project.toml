@@ -1,7 +1,7 @@
-name = "MultiDiagonalMatrices"
+name = "MultidiagonalMatrices"
 uuid = "5a51e473-7787-4c2c-bdfe-e6dafbfa001a"
 authors = ["Jürgen Fuhrmann <juergen-fuhrmann@web.de>"]
-version = "0.1.0"
+version = "0.0.1"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

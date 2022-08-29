@@ -1,4 +1,4 @@
-function LinearAlgebra.Tridiagonal(md::MultiDiagonalMatrix{T}) where T
+function LinearAlgebra.Tridiagonal(md::MultidiagonalMatrix{T}) where T
 	n=size(md,1)
 	idl=findfirst(d->d.first==-1, md.diags)
 	id=findfirst(d->d.first==0, md.diags)
@@ -12,7 +12,7 @@ end
 istridiagonal(::LinearAlgebra.Tridiagonal)=true
 
 
-function LinearAlgebra.mul!(v::AbstractVector{Tv},md::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<: Union{SMatrix,Number}, Tu<: Union{SVector,Number},Tv<: Union{SVector,Number}}
+function LinearAlgebra.mul!(v::AbstractVector{Tv},md::MultidiagonalMatrix{T},u::AbstractVector{Tu}) where {T<: Union{SMatrix,Number}, Tu<: Union{SVector,Number},Tv<: Union{SVector,Number}}
     z=zero(Tv)
     for i∈eachindex(v)
         v[i]=z

@@ -1,5 +1,5 @@
 using Test
-using MultiDiagonalMatrices
+using MultidiagonalMatrices
 using SparseArrays
 using LinearAlgebra
 using StaticArrays
@@ -165,12 +165,12 @@ end
     
     A=mdrand(20,20,[-2,0,2])
     B=sparse(A)
-    C=MultiDiagonalMatrix(B, [-2,0,2])
+    C=MultidiagonalMatrix(B, [-2,0,2])
     @test A==C
 
     A=mdrand(20*3,20*3,[-2,0,2]; blocksize=3)
     B=sparse(A)
-    C=MultiDiagonalMatrix(B, [-2,0,2]; blocksize=3)
+    C=MultidiagonalMatrix(B, [-2,0,2]; blocksize=3)
     @test A==C
 
 end

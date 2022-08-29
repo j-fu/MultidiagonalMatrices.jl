@@ -1,5 +1,5 @@
 using Test
-using MultiDiagonalMatrices
+using MultidiagonalMatrices
 using SparseArrays
 using LinearAlgebra
 using StaticArrays
@@ -26,3 +26,12 @@ end
 end
 
 
+function nnztest(A)
+    @test nnz(A)==nnz(sparse(A))
+end
+@testset "nnz" begin
+    nnztest(mdrand(10,10))
+    nnztest(mdrand(100,100,[-10, -1,0,1,10]))
+    nnztest(mdrand(100,100,[-10, -1,0,1,10];blocksize=5))
+    
+end

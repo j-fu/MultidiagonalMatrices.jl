@@ -1,5 +1,5 @@
 using Test
-using MultiDiagonalMatrices
+using MultidiagonalMatrices
 using SparseArrays
 using LinearAlgebra
 using StaticArrays
