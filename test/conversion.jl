@@ -6,19 +6,19 @@ using StaticArrays
 
 function matrixtest(n,diags,blocksize)
     f=rand(blocksize*n)
-    A=mdrand(n,diags;blocksize)
+    A=mdrand(blocksize*n,blocksize*n,diags;blocksize)
     @test A*f ≈ Matrix(A)*f
 end
 
 function matrixtest2(n,diags,blocksize)
     f=rand(blocksize,n)
-    A=mdrand(n,diags;blocksize)
+    A=mdrand(blocksize*n,blocksize*n,diags;blocksize)
     @test vec(A*f) ≈ Matrix(A)*vec(f)
 end
 
 function matrixtest3(n,diags,blocksize)
     f=[@SVector rand(blocksize) for i=1:n]
-    A=mdrand(n,diags;blocksize)
+    A=mdrand(blocksize*n,blocksize*n,diags;blocksize)
     @test reinterpret(Float64,A*f) ≈ Matrix(A)*reinterpret(Float64,f)
 end
 
@@ -72,19 +72,19 @@ end
 
 function sparsetest(n,diags,blocksize)
     f=rand(blocksize*n)
-    A=mdrand(n,diags;blocksize)
+    A=mdrand(blocksize*n,blocksize*n,diags;blocksize)
     @test A*f ≈ sparse(A)*f
 end
 
 function sparsetest2(n,diags,blocksize)
     f=rand(blocksize,n)
-    A=mdrand(n,diags;blocksize)
+    A=mdrand(blocksize*n,blocksize*n,diags;blocksize)
     @test vec(A*f) ≈ sparse(A)*vec(f)
 end
 
 function sparsetest3(n,diags,blocksize)
     f=[@SVector rand(blocksize) for i=1:n]
-    A=mdrand(n,diags;blocksize)
+    A=mdrand(blocksize*n,blocksize*n,diags;blocksize)
     @test reinterpret(Float64,A*f) ≈ sparse(A)*reinterpret(Float64,f)
 end
 
@@ -150,7 +150,7 @@ end
 
 function tridiagtest(n,diags)
     f=rand(n)
-    A=mdrand(n,diags)
+    A=mdrand(n,n,diags)
     @test A*f ≈ Tridiagonal(A)*f
 end
 
@@ -158,4 +158,19 @@ end
     tridiagtest(10,[0])
     tridiagtest(10,[1])
     tridiagtest(10,[-1,0,1])
+end
+
+
+@testset "to MD" begin
+    
+    A=mdrand(20,20,[-2,0,2])
+    B=sparse(A)
+    C=MultiDiagonalMatrix(B, [-2,0,2])
+    @test A==C
+
+    A=mdrand(20*3,20*3,[-2,0,2]; blocksize=3)
+    B=sparse(A)
+    C=MultiDiagonalMatrix(B, [-2,0,2]; blocksize=3)
+    @test A==C
+
 end

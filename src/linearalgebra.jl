@@ -34,4 +34,3 @@ function LinearAlgebra.mul!(v::AbstractVector{Tv},md::MultiDiagonalMatrix{T},u::
 end
 
 
-

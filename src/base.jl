@@ -66,18 +66,29 @@ function Base.setindex!(m::MultiDiagonalMatrix{T}, v, i, j) where T<: SMatrix
     elseif o>=0
 	m.shadow[idiag].second[ii,jj,jb-o]=v
     else
-	m.shadow[idiag].second[ii,jj,ii+o]=v
+	m.shadow[idiag].second[ii,jj,ib+o]=v
+    end
+end
+
+function _setindex!(m::MultiDiagonalMatrix{T}, v, i, j) where T<: SMatrix
+    ib,jb,ii,jj=_blockindices(m,i,j)
+    o=jb-ib
+    idiag=findfirst(d->d.first==o, m.diags)
+    if idiag==nothing
+	return 0.0
+    elseif o>=0
+	m.shadow[idiag].second[ii,jj,jb-o]=v
+    else
+	m.shadow[idiag].second[ii,jj,ib+o]=v
     end
 end
 
 
 
 
-
-
-function Base.Matrix(md::MultiDiagonalMatrix{T}) where T<:Number
-    m=zeros(T,size(md)...)
-    for d in md.diags
+function Base.Matrix(A::MultiDiagonalMatrix{T}) where T<:Number
+    m=zeros(T,size(A)...)
+    for d in A.diags
 	o=d.first
 	if o>=0
 	    for i ∈ eachindex(d.second)
@@ -92,10 +103,10 @@ function Base.Matrix(md::MultiDiagonalMatrix{T}) where T<:Number
     m
 end
 
-function Base.Matrix(md::MultiDiagonalMatrix{T}) where T<:SMatrix
-    b=blocksize(md)
-    m=zeros(eltype(T),size(md)...)
-    for d in md.diags
+function Base.Matrix(A::MultiDiagonalMatrix{T}) where T<:SMatrix
+    b=blocksize(A)
+    m=zeros(eltype(T),size(A)...)
+    for d in A.diags
 	o=d.first
 	if o>=0
 	    for i ∈ eachindex(d.second)
@@ -115,40 +126,40 @@ function Base.Matrix(md::MultiDiagonalMatrix{T}) where T<:SMatrix
 end
 
 
-function Base.:*(md::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:Number,Tu<:Number}
+function Base.:*(A::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:Number,Tu<:Number}
     Tv=promote_type(T,Tu)
     v=Vector{Tv}(undef,length(u))
-    LinearAlgebra.mul!(v,md,u)
+    LinearAlgebra.mul!(v,A,u)
 end
 
-function Base.:*(md::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatrix,Tu<:SVector}
-    b=blocksize(md)
+function Base.:*(A::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatrix,Tu<:SVector}
+    b=blocksize(A)
     if b!=size(u[1],1)
         error("incompatible blocksizes")
     end
     Tv=promote_type(eltype(T),eltype(Tu))
     v=Vector{SVector{b,Tv}}(undef,length(u))
-    LinearAlgebra.mul!(v,md,u)
+    LinearAlgebra.mul!(v,A,u)
 end
 
 
-function Base.:*(md::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatrix,Tu<:Number}
+function Base.:*(A::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatrix,Tu<:Number}
     Tv=promote_type(eltype(T),Tu)
     v=Vector{Tv}(undef,length(u))
-    b=blocksize(md)
+    b=blocksize(A)
     vv=reinterpret(SVector{b,Tv},v)
     uu=reinterpret(SVector{b,Tu},u)
-    LinearAlgebra.mul!(vv,md,uu)
+    LinearAlgebra.mul!(vv,A,uu)
     v
 end
 
 
-function Base.:*(md::MultiDiagonalMatrix{T},u::AbstractMatrix{Tu}) where {T<:SMatrix,Tu<:Number}
-    b=blocksize(md)
+function Base.:*(A::MultiDiagonalMatrix{T},u::AbstractMatrix{Tu}) where {T<:SMatrix,Tu<:Number}
+    b=blocksize(A)
     if b!=size(u,1)
         error("incompatible blocksizes")
     end
-    if size(md,1)!=length(u)
+    if size(A,1)!=length(u)
         error("incompatible matrix and vector sizes")
     end
     
@@ -156,6 +167,58 @@ function Base.:*(md::MultiDiagonalMatrix{T},u::AbstractMatrix{Tu}) where {T<:SMa
     v=Matrix{Tv}(undef,size(u)...)
     vv=vec(reinterpret(SVector{b,Tv},v))
     uu=vec(reinterpret(SVector{b,Tu},u))
-    LinearAlgebra.mul!(vv,md,uu)
+    LinearAlgebra.mul!(vv,A,uu)
     v
 end
+
+
+
+function Base.:\(A::MultiDiagonalMatrix{T},f::AbstractVecOrMat) where T<:Number
+    if istridiagonal(A)
+        tdma(A,f)
+    else
+        sparse(A)\f
+    end
+end
+
+function Base.:\(A::MultiDiagonalMatrix{T},f::AbstractVector{Tf}) where {T<:SMatrix,Tf<:SVector}
+    b=blocksize(A)
+    if b!=size(f[1],1)
+        error("incompatible blocksizes")
+    end
+    if istridiagonal(A)
+        tdma(A,f)
+    else
+        ff=reinterpret(eltype(Tf),f)
+        uu=sparse(A)\ff
+        reinterpret(SVector{b,eltype(uu)},uu)
+    end
+end
+
+
+function Base.:\(A::MultiDiagonalMatrix{T},f::AbstractVector{Tf}) where {T<:SMatrix,Tf<:Number}
+    if size(A,1)!=length(f)
+        @show size(A,1) ,length(f)
+        error("incompatible sizes")
+    end
+    if istridiagonal(A)
+        tdma(A,f)
+    else
+        sparse(A)\f
+    end
+end
+
+
+function Base.:\(A::MultiDiagonalMatrix{T},f::AbstractMatrix{Tf}) where {T<:SMatrix,Tf<:Number}
+    b=blocksize(A)
+    if b!=size(f,1)
+        error("incompatible blocksizes")
+    end
+    if istridiagonal(A)
+        tdma(A,f)
+    else
+        uu=sparse(A)\vec(f)
+        reshape(uu,size(f))
+    end
+end
+
