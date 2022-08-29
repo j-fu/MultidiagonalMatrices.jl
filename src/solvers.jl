@@ -1,6 +1,15 @@
 _lu(a::Number)=a
 _lu(a::AbstractMatrix)=lu(a)
 
+"""
+    $(TYPEDSIGNATURES)
+
+Tridiagonal matrix algorithm (метод прогонки) for both scalar and block cases.
+In the block case, this uses the non-allocating lu factorization for `SMatrix`.
+
+This algorithm does no pivoting, which in the context of nonliner solver iterations
+and in the case of diagonally dominant matrices may of lesser concern. 
+"""
 function tdma!(u,a,b,c,f)
     N=length(f)
     alpha=similar(a)
@@ -26,8 +35,13 @@ function tdma!(u,a,b,c,f)
 end
 
 
+"""
+    $(TYPEDSIGNATURES)
+
+Tridiagonal matrix algorithm (метод прогонки) for tridiagonal matrix.
+See [`tdma!(u,a,b,c,f)`](@ref) for more explanations.
+"""
 function tdma!(u,A::Tridiagonal{T},f) where T<:Number
-    istridiagonal(A)|| error("tdma works only for tridiagonal matrices")
     dl=diag(A,-1)
     d=diag(A,0)
     du=diag(A,1)
@@ -35,6 +49,12 @@ function tdma!(u,A::Tridiagonal{T},f) where T<:Number
 end
 
 
+"""
+    $(TYPEDSIGNATURES)
+
+Tridiagonal matrix algorithm (метод прогонки) for scalar tridiagonal multdidiagonal matrix.
+See [`tdma!(u,a,b,c,f)`](@ref) for more explanations.
+"""
 function tdma!(u,A::MultidiagonalMatrix{T},f) where T
     istridiagonal(A)|| error("tdma works only for tridiagonal matrices")
     dl=A.diags[1].second
@@ -43,6 +63,12 @@ function tdma!(u,A::MultidiagonalMatrix{T},f) where T
     tdma!(u,dl,d,du,f)
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Tridiagonal matrix solver for scalar matrices and vector of numbers.
+See [`tdma!(u,a,b,c,f)`](@ref) for more explanations.
+"""
 function tdma(A::Union{Tridiagonal{T},MultidiagonalMatrix{T}},f) where T<:Number
     istridiagonal(A)|| error("tdma works only for tridiagonal matrices")
     Tu=promote_type(T,eltype(f))
@@ -51,7 +77,12 @@ function tdma(A::Union{Tridiagonal{T},MultidiagonalMatrix{T}},f) where T<:Number
 end
 
 
+"""
+    $(TYPEDSIGNATURES)
 
+Tridiagonal matrix solver for block matrices and vector of SVectors.
+See [`tdma!(u,a,b,c,f)`](@ref) for more explanations.
+"""
 function tdma(md::MultidiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatrix,Tu<:SVector}
     b=blocksize(md)
     if b!=size(u[1],1)
@@ -63,6 +94,12 @@ function tdma(md::MultidiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatri
 end
 
 
+"""
+    $(TYPEDSIGNATURES)
+
+Tridiagonal matrix solver for block matrices and vector of numbers.
+See [`tdma!(u,a,b,c,f)`](@ref) for more explanations.
+"""
 function tdma(md::MultidiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatrix,Tu<:Number}
     Tv=promote_type(eltype(T),Tu)
     v=Vector{Tv}(undef,length(u))
@@ -74,6 +111,12 @@ function tdma(md::MultidiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:SMatri
 end
 
 
+"""
+    $(TYPEDSIGNATURES)
+
+Tridiagonal matrix solver for block matrices and matrix of numbers.
+See [`tdma!(u,a,b,c,f)`](@ref) for more explanations.
+"""
 function tdma(md::MultidiagonalMatrix{T},u::AbstractMatrix{Tu}) where {T<:SMatrix,Tu<:Number}
     b=blocksize(md)
     if b!=size(u,1)

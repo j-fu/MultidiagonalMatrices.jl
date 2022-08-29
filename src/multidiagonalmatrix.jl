@@ -1,18 +1,34 @@
+"""
+    $(TYPEDEF)
+Multidiagonal matrix structure. This is a generalization of a tridiagonal matrix structure
+with an arbitrary number of diagonals. No entries outside these diagonals are stored, so this
+is not a banded matrix.
+
+
+### Fields
+$(TYPEDFIELDS)
+"""
 struct MultidiagonalMatrix{T,S} <: AbstractMatrix{T}
+    """
+    Array of pairs, each  containing the index of a diagonal and its content
+    """
     diags::Vector{Pair{Int64,Vector{T}}}
+
+    """
+    Array of pairs the index of a diagonal and a mutable view of its content.
+    In case that `T` is an immutable `SMatrix`, the mutable view consists
+    in a reinterpration of the diagonal content as a rank 3 tensor.
+    """
     shadow::Vector{Pair{Int64,S}}
 end
 
-_shadow(a::Vector{T}) where T<:Number = a
-
-function _shadow(a::Vector{T}) where T<:SMatrix
-    b=size(a[1],1)
-    Te=eltype(a[1])
-    n=length(a)
-    reshape(reinterpret(Te,a),(b,b,n))
-end
 
 
+"""
+    $(TYPEDSIGNATURES)
+
+Create a multidiagonal matrix by specifying its diagonals.
+"""
 function MultidiagonalMatrix(diags::Pair{Int64,Vector{T}}...) where T
     d=diags[1]
     n=abs(d.first)+length(d.second)
@@ -25,12 +41,41 @@ function MultidiagonalMatrix(diags::Pair{Int64,Vector{T}}...) where T
 end
 
 
+
+"""
+    $(TYPEDSIGNATURES)
+
+Create a multidiagonal matrix by extracting diagonals from an AbstractMatrix.
+
+"""
 function MultidiagonalMatrix(A::AbstractMatrix{T},diags=[-1,0,1]; blocksize=1) where T<:Number
     MA=mdzeros(T,size(A)...,diags;blocksize)
     _setentries!(MA,A)
 end
 
-                                 
+"""
+    $(TYPEDSIGNATURES)
+Return vector of number as its own shadow.
+"""
+_shadow(a::Vector{T}) where T<:Number = a
+
+"""
+    $(TYPEDSIGNATURES)
+Return rank 3 tensor as a mutable view of a vector of `SMatrix`
+"""
+function _shadow(a::Vector{T}) where T<:SMatrix
+    b=size(a[1],1)
+    Te=eltype(a[1])
+    n=length(a)
+    reshape(reinterpret(Te,a),(b,b,n))
+end
+
+
+"""
+    $(TYPEDSIGNATURES)
+
+Set entries of a MultidiagonalMatrix from the corresponding ones of an abstract matrix
+"""                                 
 function _setentries!(MA::MultidiagonalMatrix{T},A::AbstractMatrix) where T<:Number
     for d in MA.diags
 	o=d.first
@@ -47,6 +92,11 @@ function _setentries!(MA::MultidiagonalMatrix{T},A::AbstractMatrix) where T<:Num
     MA
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Set entries of a MultidiagonalMatrix from the corresponding ones of an abstract matrix
+"""                                 
 function _setentries!(MA::MultidiagonalMatrix{T},A::AbstractMatrix) where T<:SMatrix
     b=blocksize(MA)
     for d in MA.shadow
@@ -69,12 +119,27 @@ function _setentries!(MA::MultidiagonalMatrix{T},A::AbstractMatrix) where T<:SMa
 end
 
 
-
+"""
+    $(SIGNATURES)
+ 
+Return the block size.
+"""
 blocksize(md::MultidiagonalMatrix{T,S}) where {T<: SMatrix,S} =size(md.diags[1].second[1],1)
 blocksize(md::MultidiagonalMatrix{T,S}) where {T<: Number,S} = 1
 
+
+"""
+    $(SIGNATURES)
+
+Detect if matrix is tridiagonal
+"""
 istridiagonal(m::MultidiagonalMatrix)= first.(m.diags)==[-1,0,1]
 
+"""
+    $(SIGNATURES)
+
+Detect if matrix could come from a one- two or three dimensional grid
+"""
 function fdsizes(m::MultidiagonalMatrix)
     diags=first.(md.diags)
     ndiags=length(diags)
@@ -102,7 +167,11 @@ function fdsizes(m::MultidiagonalMatrix)
     nothing
 end
 
+"""
+    mdrand(n,m,diags=[-1,0,1]; blocksize=1)
 
+Create a strictly diagonally dominant random (block) multidiagonal matrix. 
+"""
 function mdrand(n,m,diags=[-1,0,1]; blocksize=1)
     n==m || error("Can handle square matrices only")
     T=Float64
@@ -133,7 +202,11 @@ function mdrand(n,m,diags=[-1,0,1]; blocksize=1)
     MultidiagonalMatrix(pairs...)
 end
 
+"""
+    mdzeros(n,m,diags=[-1,0,1]; blocksize=1)
 
+Create a zero block diagonal matrix with element type `Float64`
+"""
 function mdzeros(n,m,diags=[-1,0,1], ::Type{T}=Float64; blocksize=1) where T
     n==m || error("Can handle square matrices only")
     ndiags=length(diags)*blocksize
@@ -152,4 +225,9 @@ function mdzeros(n,m,diags=[-1,0,1], ::Type{T}=Float64; blocksize=1) where T
     MultidiagonalMatrix(pairs...)
 end
 
+"""
+    mdzeros(T, n,m,diags=[-1,0,1]; blocksize=1)
+
+Create a zero block diagonal matrix with element type `T`
+"""
 mdzeros(::Type{T},n,m,diags=[-1,0,1];blocksize=1)  where T =mdzeros(n,m,diags,T;blocksize)

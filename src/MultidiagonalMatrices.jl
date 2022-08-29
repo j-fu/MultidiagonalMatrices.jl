@@ -2,11 +2,11 @@ module MultidiagonalMatrices
 using LinearAlgebra
 using SparseArrays
 using StaticArrays
-
+using DocStringExtensions
 
 include("multidiagonalmatrix.jl")
 export MultidiagonalMatrix
-export istridiagonal,fdsizes,mdrand,mdzeros
+export istridiagonal,fdsizes,mdrand,mdzeros,blocksize
 
 include("base.jl")
 include("linearalgebra.jl")

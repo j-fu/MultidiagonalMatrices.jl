@@ -1,6 +1,17 @@
+
+"""
+    $(TYPEDSIGNATURES)
+
+Number of nonzero entries.
+"""
 SparseArrays.nnz(A::MultidiagonalMatrix)=sum(d->length(d.second),A.diags)*blocksize(A)^2
 
 
+"""
+    $(TYPEDSIGNATURES)
+
+Create sparse matrix from scalar multidiagonal matrix.
+"""
 function SparseArrays.sparse(md::MultidiagonalMatrix{T}) where T<: Number
     I=Int64[]
     J=Int64[]
@@ -25,6 +36,11 @@ function SparseArrays.sparse(md::MultidiagonalMatrix{T}) where T<: Number
 end 
 
 
+"""
+    $(TYPEDSIGNATURES)
+
+Create sparse matrix from multidiagonal block matrix.
+"""
 function SparseArrays.sparse(md::MultidiagonalMatrix{T}) where T<: SMatrix
     b=blocksize(md)
     I=Int64[]

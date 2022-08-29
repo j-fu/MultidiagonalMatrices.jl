@@ -1,3 +1,8 @@
+"""
+    $(TYPEDSIGNATURES)
+
+Create tridiagonal matrix from multidiagonal matrix.
+"""
 function LinearAlgebra.Tridiagonal(md::MultidiagonalMatrix{T}) where T
 	n=size(md,1)
 	idl=findfirst(d->d.first==-1, md.diags)
@@ -12,6 +17,11 @@ end
 istridiagonal(::LinearAlgebra.Tridiagonal)=true
 
 
+"""
+    $(TYPEDSIGNATURES)
+
+Matrix-Vector multiplication.
+"""
 function LinearAlgebra.mul!(v::AbstractVector{Tv},md::MultidiagonalMatrix{T},u::AbstractVector{Tu}) where {T<: Union{SMatrix,Number}, Tu<: Union{SVector,Number},Tv<: Union{SVector,Number}}
     z=zero(Tv)
     for i∈eachindex(v)
