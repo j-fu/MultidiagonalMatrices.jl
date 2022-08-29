@@ -2,6 +2,7 @@ using Test
 using MultiDiagonalMatrices
 using SparseArrays
 using LinearAlgebra
+using StaticArrays
 
 function matrixtest(n,diags,blocksize)
     f=rand(blocksize*n)
@@ -69,18 +70,81 @@ end
 end
 
 
-function sparsetest(n,diags)
-    f=rand(n)
-    A=mdrand(n,diags)
+function sparsetest(n,diags,blocksize)
+    f=rand(blocksize*n)
+    A=mdrand(n,diags;blocksize)
     @test A*f ≈ sparse(A)*f
 end
 
+function sparsetest2(n,diags,blocksize)
+    f=rand(blocksize,n)
+    A=mdrand(n,diags;blocksize)
+    @test vec(A*f) ≈ sparse(A)*vec(f)
+end
+
+function sparsetest3(n,diags,blocksize)
+    f=[@SVector rand(blocksize) for i=1:n]
+    A=mdrand(n,diags;blocksize)
+    @test reinterpret(Float64,A*f) ≈ sparse(A)*reinterpret(Float64,f)
+end
+
+
+
 @testset "Sparse" begin
-    sparsetest(10,[0])
-    sparsetest(10,[1])
-    sparsetest(10,[-1,0,1])
-    sparsetest(10,[-5,-1,0,1])
-    sparsetest(10,[-5,-1,0,1,5])
+    sparsetest(10,[0],1)
+    sparsetest(10,[1],1)
+    sparsetest(10,[-1,0,1],1)
+    sparsetest(10,[-5,-1,0,1],1)
+    sparsetest(10,[-5,-1,0,1,5],1)
+
+    sparsetest(10,[0],2)
+    sparsetest(10,[1],2)
+    sparsetest(10,[-1,0,1],2)
+    sparsetest(10,[-5,-1,0,1],2)
+    sparsetest(10,[-5,-1,0,1,5],2)
+
+    sparsetest(50,[0],5)
+    sparsetest(50,[1],5)
+    sparsetest(50,[-1,0,1],5)
+    sparsetest(50,[-5,-1,0,1],5)
+    sparsetest(50,[-5,-1,0,1,5],5)
+   
+    sparsetest(10,[0],2)
+    sparsetest(10,[1],2)
+    sparsetest(10,[-1,0,1],2)
+    sparsetest(10,[-5,-1,0,1],2)
+    sparsetest(10,[-5,-1,0,1,5],2)
+
+    sparsetest(50,[0],5)
+    sparsetest(50,[1],5)
+    sparsetest(50,[-1,0,1],5)
+    sparsetest(50,[-5,-1,0,1],5)
+    sparsetest(50,[-5,-1,0,1,5],5)
+
+    sparsetest2(10,[0],2)
+    sparsetest2(10,[1],2)
+    sparsetest2(10,[-1,0,1],2)
+    sparsetest2(10,[-5,-1,0,1],2)
+    sparsetest2(10,[-5,-1,0,1,5],2)
+
+    sparsetest2(50,[0],5)
+    sparsetest2(50,[1],5)
+    sparsetest2(50,[-1,0,1],5)
+    sparsetest2(50,[-5,-1,0,1],5)
+    sparsetest2(50,[-5,-1,0,1,5],5)
+
+    sparsetest3(10,[0],2)
+    sparsetest3(10,[1],2)
+    sparsetest3(10,[-1,0,1],2)
+    sparsetest3(10,[-5,-1,0,1],2)
+    sparsetest3(10,[-5,-1,0,1,5],2)
+
+    sparsetest3(50,[0],5)
+    sparsetest3(50,[1],5)
+    sparsetest3(50,[-1,0,1],5)
+    sparsetest3(50,[-5,-1,0,1],5)
+    sparsetest3(50,[-5,-1,0,1,5],5)
+
 end
 
 

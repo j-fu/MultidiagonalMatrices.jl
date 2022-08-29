@@ -99,22 +99,20 @@ function Base.Matrix(md::MultiDiagonalMatrix{T}) where T<:SMatrix
 	o=d.first
 	if o>=0
 	    for i ∈ eachindex(d.second)
-                ib=(i-1)*b+1
-                jb=(i+o-1)*b+1
-		m[ib:ib+b-1,jb:jb+b-1] = d.second[i]
+                ib=(i-1)*b
+                jb=(i+o-1)*b
+		m[ib+1:ib+b,jb+1:jb+b] = d.second[i]
    	    end
 	else
 	    for i ∈ eachindex(d.second)
-                ib=(i-o-1)*b+1
-                jb=(i-1)*b+1
-	        m[ib:ib+b-1,jb:jb+b-1] = d.second[i]
+                ib=(i-o-1)*b
+                jb=(i-1)*b
+	        m[ib+1:ib+b,jb+1:jb+b] = d.second[i]
    	    end
 	end
     end
     m
 end
-
-
 
 
 function Base.:*(md::MultiDiagonalMatrix{T},u::AbstractVector{Tu}) where {T<:Number,Tu<:Number}
